@@ -26,6 +26,13 @@ body.dark{
     transition: all 0.3s ease;
 } 
 
+.deletebut
+{   
+    height: 29px;
+    font-size: 12px !important;
+    width: 86px;
+    font-weight: 700 !important;
+}
 ::-webkit-scrollbar-thumb:hover {
     background: #0b3cc1;
 }

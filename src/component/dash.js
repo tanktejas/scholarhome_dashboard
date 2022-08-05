@@ -4,6 +4,10 @@ import { useParams } from "react-router-dom";
 import { db } from "../firebase/firebase";
 import Avatar from "@mui/material/Avatar";
 import { deepOrange, deepPurple } from "@mui/material/colors";
+import Button from "@mui/material/Button";
+import { updateDoc, deleteField } from "firebase/firestore";
+import { deleteDoc } from "firebase/firestore";
+import Switch from "@material-ui/core/Switch";
 
 import {
   collection,
@@ -12,6 +16,7 @@ import {
   onSnapshot,
   doc,
 } from "firebase/firestore";
+import { async } from "@firebase/util";
 
 function Navbar() {
   const [userall, setuserall] = useState([]); //for all user
@@ -57,6 +62,49 @@ function Navbar() {
       });
     });
   }, []);
+
+  function funfordeletescho(name) {
+    let nn = name;
+
+    const query1 = query(collection(db, "Scholarships"));
+    onSnapshot(query1, async (data) => {
+      let todelid = "";
+      for (let i = 0; i < data.docs.length; i++) {
+        const nametomatch = data.docs[i].data().name;
+        if (nametomatch == nn) {
+          todelid = data.docs[i].id;
+        }
+      }
+      const adminid1 = adminid;
+
+      if (todelid != "") await deleteDoc(doc(db, "Scholarships", todelid));
+
+      const posted = curruser.sc_posted;
+
+      const cityRef2 = doc(db, "users", adminid);
+      const yy1 = await updateDoc(cityRef2, {
+        sc_posted: posted.filter((item) => {
+          return item.name != nn;
+        }),
+      });
+    });
+  }
+
+  async function makethis(name, makethis) {
+    const reff = doc(db, "users", adminid);
+    const scholar = curruser.sc_posted;
+
+    for (let i = 0; i < scholar.length; i++) {
+      if (scholar[i].name == name) {
+        scholar[i].status = makethis;
+        break;
+      }
+    }
+
+    const uui = await updateDoc(reff, {
+      sc_posted: scholar,
+    });
+  }
 
   if (!stat) {
     return <h1>Loading...</h1>;
@@ -249,7 +297,44 @@ function Navbar() {
                   {scholarships.map((item) => {
                     return (
                       <>
-                        <span class="data-list">{item.status}</span>
+                        <span class="data-list">
+                          {item.status + " "}{" "}
+                          <span>
+                            <Switch
+                              checked={item.status == "active"}
+                              onChange={(e) => {
+                                let make =
+                                  item.status == "active"
+                                    ? "deactive"
+                                    : "active";
+
+                                makethis(item.name, make);
+                              }}
+                            />
+                          </span>
+                        </span>
+                      </>
+                    );
+                  })}
+                </div>
+
+                <div class="data Remove">
+                  <span class="data-title">Remove</span>
+                  {scholarships.map((item) => {
+                    return (
+                      <>
+                        <span class="data-list">
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            className="deletebut"
+                            onClick={() => {
+                              funfordeletescho(item.name);
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </span>
                       </>
                     );
                   })}
