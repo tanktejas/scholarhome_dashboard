@@ -24,6 +24,10 @@ function Navbar() {
   const [curruser, setcurr] = useState(undefined); // curr user
   const [view, setview] = useState(-1);
   const [stat1, settt] = useState(false);
+  const [postedscho, setpos] = useState([]);
+  const [permenent, setper] = useState([]);
+  const [searchtext, setsear] = useState("");
+  const [allscholar, setallscho] = useState([]);
 
   const par = useParams();
   const adminid = par.adminid;
@@ -38,6 +42,8 @@ function Navbar() {
       qS.docs.map((item) => {
         if (item.id == adminid) {
           setcurr(item.data());
+          setpos(item.data().sc_posted);
+          setper(item.data().sc_posted);
           setuserall(qS.docs);
 
           // this code for fetching views from countapi
@@ -58,6 +64,14 @@ function Navbar() {
             });
 
           //end
+
+          // all scholarships
+
+          const www = query(collection(db, "Scholarships"));
+
+          onSnapshot(www, (qS) => {
+            setallscho(qS.docs);
+          });
         }
       });
     });
@@ -90,6 +104,17 @@ function Navbar() {
     });
   }
 
+  function searchfil(search) {
+    if (search == "") {
+      setpos(permenent);
+    } else {
+      const datta = permenent.filter((item) => {
+        return item.name.includes(search);
+      });
+      setpos(datta);
+    }
+  }
+
   async function makethis(name, makethis) {
     const reff = doc(db, "users", adminid);
     const scholar = curruser.sc_posted;
@@ -100,9 +125,22 @@ function Navbar() {
         break;
       }
     }
-
     const uui = await updateDoc(reff, {
       sc_posted: scholar,
+    });
+
+    let idtoupdate = "";
+
+    for (let i = 0; i < allscholar.length; i++) {
+      if (allscholar[i].data().name == name) {
+        idtoupdate = allscholar[i].id;
+        break;
+      }
+    }
+
+    const reffforsc = doc(db, "Scholarships", idtoupdate);
+    const temp = await updateDoc(reffforsc, {
+      status: makethis,
     });
   }
 
@@ -215,9 +253,21 @@ function Navbar() {
 
             <div class="search-box">
               <i class="uil uil-search"></i>
-              <input type="text" placeholder="Search here..." />
+              <input
+                type="text"
+                placeholder="Search Posted Scholarship Name here..."
+                value={searchtext}
+                onChange={(e) => {
+                  setsear(e.target.value);
+                  searchfil(e.target.value);
+                }}
+              />
             </div>
-
+            {/* <div className="btnsearch">
+              <Button variant="contained" href="#contained-buttons">
+                Link
+              </Button>
+            </div> */}
             {/* <img
               src="http://raw.githubusercontent.com/tanktejas/hackathon/master/src/Components/dash/Images/profile.jpg"
               alt=""
@@ -260,7 +310,7 @@ function Navbar() {
               <div class="activity-data">
                 <div class="data names">
                   <span class="data-title">Name</span>
-                  {scholarships.map((item) => {
+                  {postedscho.map((item) => {
                     return (
                       <>
                         <span class="data-list">{item.name}</span>
@@ -271,7 +321,7 @@ function Navbar() {
 
                 <div class="data email">
                   <span class="data-title">Email</span>
-                  {scholarships.map((item) => {
+                  {postedscho.map((item) => {
                     return (
                       <>
                         <span class="data-list">{curruser.email}</span>
@@ -281,7 +331,7 @@ function Navbar() {
                 </div>
                 <div class="data joined">
                   <span class="data-title">Date</span>
-                  {scholarships.map((item) => {
+                  {postedscho.map((item) => {
                     return (
                       <>
                         <span class="data-list">
@@ -294,7 +344,7 @@ function Navbar() {
 
                 <div class="data status">
                   <span class="data-title">Status</span>
-                  {scholarships.map((item) => {
+                  {postedscho.map((item) => {
                     return (
                       <>
                         <span class="data-list">
@@ -320,7 +370,7 @@ function Navbar() {
 
                 <div class="data Remove">
                   <span class="data-title">Remove</span>
-                  {scholarships.map((item) => {
+                  {postedscho.map((item) => {
                     return (
                       <>
                         <span class="data-list">
